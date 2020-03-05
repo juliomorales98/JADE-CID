@@ -1,0 +1,3 @@
+javac -cp lib/jade.jar src/examples/hello/HelloWorldAgent.java -d classes/
+
+java -cp lib/jade.jar:classes/ jade.Boot -gui helloAgent:examples.hello.HelloWorldAgent
