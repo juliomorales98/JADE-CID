@@ -3,7 +3,7 @@ package CID.ThickerWaker;
 import jade.core.Agent;
 import jade.core.behaviours.*;
 
-public class HandsOn5Agent extends Agent{
+public class HandsOn4Agent extends Agent{
 
     private int tickerCount;
     private CurrencyExchangeInformer cei;
