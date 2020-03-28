@@ -1,6 +1,7 @@
 package CID.MultipleLR;
 
 import javax.naming.InitialContext;
+import java.util.Scanner;
 
 public class MLRCalculator{
     private static double[][] dataSet = {
@@ -39,6 +40,9 @@ public class MLRCalculator{
     private static double b0;
     private static double b1;
     private static double b2;
+
+    private static double changeAverageX1;
+    private static double changeAverageX2;
 
     private static void PrintData(double[][] m){
         for(int i = 0; i < m.length; i++){
@@ -86,6 +90,16 @@ public class MLRCalculator{
         return Sumatory(index) / dataSet.length;
     }
 
+    private static double ChangeAverage(int index){
+        double res = 0;
+
+        for(int i = 0; i < dataSet.length-1; i++){
+            res += dataSet[i+1][index] - dataSet[i][index];
+        }
+
+        return res / dataSet.length;
+    }
+
     private static void InitializeVariables(){
         n = (double) dataSet.length; 
         
@@ -103,6 +117,9 @@ public class MLRCalculator{
         b1 = CalculateB1();
         b2 = CalculateB2();
         b0 = CalculateB0();
+
+        changeAverageX1 = ChangeAverage(0);
+        changeAverageX2 = ChangeAverage(1);
         
     }
 
@@ -137,7 +154,31 @@ public class MLRCalculator{
         }
     }
 
+    private static double CalculateY(double _x1, double _x2){
+        return b0 + b1*_x1 + b2*_x2;
+    }
+
+    private static boolean CalculateY(int times){
+        double newX1 = dataSet[dataSet.length-1][0] + changeAverageX1;
+        double newX2 = dataSet[dataSet.length-1][1] + changeAverageX2;
+
+        for(int i = 0; i < times; i++){
+            System.out.println("| " + newX1 + "| " + newX2 + "| " + CalculateY(newX1, newX2));
+            newX1 += changeAverageX1;
+            newX2 += changeAverageX2;
+        }
+        
+
+        if(times > 0)
+            return true;
+        else
+            return false;
+    }
+
     public static void main(String[] args){
+        Scanner reader = new Scanner(System.in);
+        boolean getPredictions = false;
+
         System.out.println("Data Set:");
         PrintData(dataSet);
 
@@ -146,9 +187,13 @@ public class MLRCalculator{
         System.out.println("b1 = " + b1);
         System.out.println("b2 = " + b2);
         
-        CalculateY();
+        do{
+            System.out.println("\nNumber of predictions: ");
+            getPredictions = CalculateY(reader.nextInt());
+        }while(getPredictions);
+        
 
-
+        reader.close();
         
     }
 }
