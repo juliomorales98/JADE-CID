@@ -1,5 +1,6 @@
 package CID.MultipleLR;
 
+import javax.naming.InitialContext;
 
 public class MLRCalculator{
     private static double[][] dataSet = {
@@ -35,16 +36,22 @@ public class MLRCalculator{
     
     private static double determinante;
 
-    private static double b0 = -153.51;
-    private static double b1 = 1.24;
-    private static double b2 = 12.08;
+    private static double b0;
+    private static double b1;
+    private static double b2;
 
-    private static void PrintData(){
-        for(int i = 0; i < dataSet.length; i++){
-            for(int j = 0; j < dataSet[0].length; j++){
-                System.out.print("| " + dataSet[i][j]);
+    private static void PrintData(double[][] m){
+        for(int i = 0; i < m.length; i++){
+            for(int j = 0; j < m[0].length; j++){
+                System.out.print("| " + m[i][j]);
             }
             System.out.println();
+        }
+    }
+
+    private static void PrintData(double[] m){
+        for(int i = 0; i < m.length; i++){
+            System.out.println("| " + m[i]);    
         }
     }
 
@@ -92,12 +99,18 @@ public class MLRCalculator{
         sumPowX2 = SumatoryPow(1);
 
         determinante = CalculateDetermin();
+
+        b1 = CalculateB1();
+        b2 = CalculateB2();
+        b0 = CalculateB0();
         
     }
 
     private static double CalculateDetermin(){
-        return (n*sumPowX1*sumPowX2 + 2*sumX1*sumX1X2*sumX2)-
-                (2*sumX2*sumPowX1 + n*sumX1X2*sumX1X2 + 2*sumX1*sumPowX2);
+        return (n*sumPowX1*sumPowX2 + sumX1*sumX1X2*sumX2 + sumX2*sumX1*sumX1X2)-
+                (sumX2*sumPowX1*sumX2 + n*sumX1X2*sumX1X2 + sumPowX2*sumX1*sumX1);
+
+        
     }
 
     private static double CalculateB0(){
@@ -113,7 +126,7 @@ public class MLRCalculator{
 
     private static double CalculateB2(){
         return ( (n*sumPowX1*sumX2Y + sumX1*sumX1X2*sumY + sumX2*sumX1*sumX1Y) - 
-                (sumY*sumX2*sumPowX1 + n*sumX1Y*sumX1X2 + sumX2Y*2*sumX1)
+                (sumY*sumX2*sumPowX1 + n*sumX1Y*sumX1X2 + sumX2Y*sumX1*sumX1)
                 ) / determinante;
     }
 
@@ -126,17 +139,16 @@ public class MLRCalculator{
 
     public static void main(String[] args){
         System.out.println("Data Set:");
-        PrintData();
-        System.out.println("Y'");
-        CalculateY();
+        PrintData(dataSet);
+
         InitializeVariables();
-        System.out.println("b1 = " + CalculateB1());
-        System.out.println("b2 = " + CalculateB2());
-        System.out.println("b0 = " + CalculateB0());
-        b1 = CalculateB1();
-        b2 = CalculateB2();
-        b0 = CalculateB0();
+        System.out.println("b0 = " + b0);
+        System.out.println("b1 = " + b1);
+        System.out.println("b2 = " + b2);
+        
         CalculateY();
+
+
         
     }
 }
