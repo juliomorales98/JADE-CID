@@ -175,7 +175,7 @@ public class MLRCalculator{
             return false;
     }
 
-    public static void main(String[] args){
+    public static void DoRegression(){
         Scanner reader = new Scanner(System.in);
         boolean getPredictions = false;
 
@@ -193,7 +193,7 @@ public class MLRCalculator{
         }while(getPredictions);
         
 
-        reader.close();
+        //reader.close();
         
     }
 }
