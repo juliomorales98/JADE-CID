@@ -26,6 +26,7 @@ public class PolynomialRCalculator {
 
     public void ImprimirMatriz(double[][] matriz)
     {
+        
         for (int i = 0; i < matriz.length; i++) 
         {
           for (int j = 0; j < matriz[i].length; j++) 
@@ -224,22 +225,52 @@ public class PolynomialRCalculator {
     public void CalcularY(int nPredicciones)
     {   
         double newX = datosX[nDatos - 1] + 1;
+
+        System.out.println("X\tY");
         for(int i = 0; i < nPredicciones; i++)
         {
-            System.out.println(i + 1 + ".-\t" + newX + "\t " + CalcularY(newX));
+            System.out.println(newX + "\t" + CalcularY(newX));
             newX += 1;
         }
     }
 
-    public void DoRegression()
+    public void DoPredictions()
     {
         Scanner reader = new Scanner(System.in);
         int numero = 0;
         do{
-            System.out.println("\nIngresa el número de predicciones que deseas hacer:\nPresiona '0' para salir...\t ");
+            System.out.println("\nPredicciones: ");
             numero = reader.nextInt();
             CalcularY(numero);
         }while(numero != 0);
+    }
+
+    public void DoRegression(){
+
+        System.out.println("Datos:");
+        System.out.println("X\tY");
+        for(int i = 0; i < nDatos; i++)
+            System.out.println(datosX[i] + "\t" + datosY[i]);
+
+        double[][] matriz = Coeficientes();
+        
+        GaussJordan(matriz);        
+
+        System.out.println("\nBetas");
+        double[] betas = CalcularBetas(matriz);
+        
+        System.out.println("B0 = " + betas[0]);
+        System.out.println("B1 = " + betas[1]);
+        System.out.println("B2 = " + betas[2]);
+
+
+        System.out.println("\nError");
+        double sr = CalcularSR(betas);
+        double st = CalcularST();
+        double r2 = CalcularR2(st, sr);
+        System.out.println("St = " + st);
+        System.out.println("Sr = " + sr);
+        System.out.println("r2 = " + r2);
     }
     
 }
