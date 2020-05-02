@@ -246,30 +246,40 @@ public class PolynomialRCalculator {
     }
 
     public void DoRegression(){
+        double[][] matriz;
+        double[] betas;
+        double sr;
+        double st;
+        double r2;
 
+
+        //Imprimimos primero porque luego salta error
         System.out.println("Datos:");
         System.out.println("X\tY");
         for(int i = 0; i < nDatos; i++)
             System.out.println(datosX[i] + "\t" + datosY[i]);
 
-        double[][] matriz = Coeficientes();
-        
+        matriz = Coeficientes();
         GaussJordan(matriz);        
+        betas = CalcularBetas(matriz);
+        sr = CalcularSR(betas);
+        st = CalcularST();
+        r2 = CalcularR2(st, sr);
 
-        System.out.println("\nBetas");
-        double[] betas = CalcularBetas(matriz);
-        
+        System.out.println("\nBetas");  
         System.out.println("B0 = " + betas[0]);
         System.out.println("B1 = " + betas[1]);
         System.out.println("B2 = " + betas[2]);
 
+        System.out.println("\nEcuación");  
+        System.out.print("y' = ");
+                for(int i = 0; i < betas.length; i++)
+                {                  
+                    
+                    System.out.print(" + " + betas[i]);
+                }
 
-        System.out.println("\nError");
-        double sr = CalcularSR(betas);
-        double st = CalcularST();
-        double r2 = CalcularR2(st, sr);
-        System.out.println("St = " + st);
-        System.out.println("Sr = " + sr);
+        System.out.println("\n\nError");        
         System.out.println("r2 = " + r2);
     }
     
