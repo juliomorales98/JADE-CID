@@ -14,11 +14,11 @@ public class PolynomialRCalculator {
     double b1;
     double b2;
 
-    //Constructor
+    
     public PolynomialRCalculator()
     {
-        datosX = new double[]{0, 1, 2, 3, 4, 5};
-        datosY = new double[]{2.1, 7.7, 13.6, 27.2, 40.9, 61.1};
+        datosX = new double[]{0, 1, 2, 3, 4, 5,6};
+        datosY = new double[]{2.1, 7.7, 13.6, 27.2, 40.9, 61.1,60};
         nDatos = datosX.length;
         orden = 2;
         resolvible = true;
@@ -37,7 +37,7 @@ public class PolynomialRCalculator {
         }
     }
 
-    public double Pow(double dato, int pot) // Función que eleva un dato a n potencia
+    public double Pow(double dato, int pot) 
     {
         double res = 1;
         for(int i = 0; i < pot; i++)
@@ -45,7 +45,7 @@ public class PolynomialRCalculator {
         return res;
     } 
 
-    public double Sumatoria(double datos[]) //Función que realiza la sumatoria de un conjunto de datos
+    public double Sumatoria(double datos[]) 
     {
         double sumatoria = 0;
         for(int i = 0; i < datos.length; i++)
@@ -91,20 +91,18 @@ public class PolynomialRCalculator {
         return Sumatoria(e);
     }
 
-    public double CalcularR2(double st, double sr) // Coeficiente de determinaión
+    public double CalcularR2(double st, double sr) 
     {
         return (st - sr) / st;
     }
 
-    public double[][] Coeficientes() // Función que determina los coeficientes de cada elemento en la matriz
+    public double[][] Coeficientes() 
     {
-        // Este método es para una matriz dinámica de n orden
-        // orden es el grado del polinomio que estamos buscando
+        
         double[][] matriz = new double[orden + 1][orden + 2];
-        // 2 * orden + 1 Es la potencia máxima que alcanza X
-        // s son los valores de X a la n potencia
-        double[] s = new double[(2 * orden) + 1];
+        double[] s = new double[(2 * orden) + 1];        
 	    double suma;
+
 	    for(int k = 0; k < 2 * orden + 1; k++)
         {
             suma = 0;
@@ -112,7 +110,7 @@ public class PolynomialRCalculator {
                 suma += Pow(datosX[i], k);
             s[k] = suma;
 	    }
-        // Determina los resultados de cada fila en la matriz
+        
 	    for(int k = 0; k < orden + 1; k++)
         {
 		    suma=0;
@@ -120,7 +118,7 @@ public class PolynomialRCalculator {
 			    suma += Pow(datosX[i], k) * datosY[i];
 		    matriz[k][orden + 1] = suma;
 	    }  
-        // Asigna los coeficientes calculados a la matriz
+        
 	    for(int i = 0; i < orden + 1; i++)
         {
 		    for(int j = 0; j < orden + 1; j++)
@@ -129,7 +127,7 @@ public class PolynomialRCalculator {
         return matriz;
     }
 
-    public void GaussJordan(double[][] matriz) // Método GaussJordan para resolver la matriz
+    public void GaussJordan(double[][] matriz) 
     {
         int k = 0;
         int n = orden + 1;
@@ -162,7 +160,7 @@ public class PolynomialRCalculator {
             ReduccionAUno(matriz, n);
     }
 
-    public void ReduccionACero(double[][] matriz, int i, int j, int n) // Reduce los elementos NO DIAGONALES a cero
+    public void ReduccionACero(double[][] matriz, int i, int j, int n) 
     {
         double[] ra = new double[n + 1];
         for(int k = 0; k < n + 1; k++)
@@ -175,7 +173,7 @@ public class PolynomialRCalculator {
         }
     }
 
-    public void ReduccionAUno(double[][] matriz, int n) // Reduce los elementos DIAGONALES a uno
+    public void ReduccionAUno(double[][] matriz, int n) 
     {
         double aux;
         for(int i = 0; i < n; i++)
@@ -188,7 +186,7 @@ public class PolynomialRCalculator {
         }
     }
 
-    public boolean Diagonal(double[][] matriz, int n) // Determina si la matriz está resuelta por medio de su diagonal
+    public boolean Diagonal(double[][] matriz, int n) 
     {
         boolean res = true;
         for(int i = 0; i < n; i++)
@@ -253,7 +251,7 @@ public class PolynomialRCalculator {
         double r2;
 
 
-        //Imprimimos primero porque luego salta error
+        
         System.out.println("Datos:");
         System.out.println("X\tY");
         for(int i = 0; i < nDatos; i++)
