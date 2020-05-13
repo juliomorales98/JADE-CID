@@ -1,7 +1,8 @@
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-public class History{
+public class History implements Serializable{
     private Date date;
     private String type;//type of configuration
     private List<String> configuration;

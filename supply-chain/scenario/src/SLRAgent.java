@@ -1,3 +1,4 @@
+import java.util.Date;
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
 //imports para directory facilitator
@@ -8,10 +9,13 @@ import jade.domain.FIPAException;
 
 public class SLRAgent extends Agent{
     private SLR slr;
+    private MySqlCon con;
     double[] y = new double[]{651,762,856,1063,1190,1298,1421,1440,1518};//sales
     double[] x = new double[]{23,26,30,34,43,48,52,57,58};//month
     protected void setup(){        
         slr = new SLR();
+        con = new MySqlCon();
+        con.GenerateConnection();
         //addBehaviour(new MyOneShotRegression());
         // DescripciÃ³n del agente
         DFAgentDescription descripcion = new DFAgentDescription();
@@ -32,6 +36,26 @@ public class SLRAgent extends Agent{
         }
         catch (FIPAException e) {
             e.printStackTrace();
+        }
+
+        if(con.GetConnection() == null){
+            System.out.println("Conexión con SQL fallida");
+        }else{
+            System.out.println("Conexión con SQL establecida");
+            History myHistory = new History(new Date(), "Servidor", null, 159000);
+            SaveObject so = new SaveObject();
+            so.setJavaObject((Object)myHistory);
+            try{
+                so.saveObject(con.GetConnection());
+            }catch(Exception e){
+                System.out.println(e);
+            }
+            try{
+                so.getObject(con.GetConnection());
+            }catch(Exception e){
+                System.out.println(e);
+            }
+            
         }
     }
 
