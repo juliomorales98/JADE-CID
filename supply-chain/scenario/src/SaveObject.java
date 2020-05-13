@@ -89,7 +89,7 @@ public class SaveObject {
 
                 History historyAux =(History)ins.readObject();
 
-                System.out.println("Object in value ::"+historyAux.GetType());
+                System.out.println("Object in value ::"+historyAux.GetDate());
                 result.add(historyAux);
                 ins.close();
 

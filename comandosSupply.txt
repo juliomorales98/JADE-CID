@@ -1,1 +1,2 @@
-javac -cp ../../jade/lib/jade.jar:mysql-connector-java-java-8.0.19.jar:classes/ src/*.java -d classes
+javac -cp ../../jade/lib/jade.jar:classes:../../jade/lib/mysql-connector.jar src/*.java -d classes
+java -cp ../../jade/lib/jade.jar:classes:../../jade/lib/mysql-connector.jar jade.Boot -gui

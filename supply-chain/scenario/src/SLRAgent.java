@@ -42,13 +42,20 @@ public class SLRAgent extends Agent{
             System.out.println("Conexión con SQL fallida");
         }else{
             System.out.println("Conexión con SQL establecida");
-            History myHistory = new History(new Date(), "Servidor", null, 159000);
+            
+            int veces = (int)(Math.random()*20+1);
             SaveObject so = new SaveObject();
-            so.setJavaObject((Object)myHistory);
-            try{
-                so.saveObject(con.GetConnection());
-            }catch(Exception e){
-                System.out.println(e);
+
+            for(int i = 0; i < veces; i++){
+                History myHistory = new History((int)(Math.random()*12+1), "Servidor", null, 159000);
+                
+                so.setJavaObject((Object)myHistory);
+                try{
+                    so.saveObject(con.GetConnection());
+                }catch(Exception e){
+                    System.out.println(e);
+                }
+                
             }
             try{
                 so.getObject(con.GetConnection());
