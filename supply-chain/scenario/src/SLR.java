@@ -1,11 +1,12 @@
 public class SLR {
     private double[] month;
     private double[] sales;
-    public SLR(){
-        
+    private int noPredictions;
+    public SLR(int _noP){
+        noPredictions = _noP;
         System.out.println("SLR calculator ready");
     }
-    public void StartLinealRegression(double[] _x, double[] _y){ 
+    public void DoRegression(double[] _x, double[] _y){ 
         this.month = _x;
         this.sales = _y; 
                      
@@ -17,20 +18,20 @@ public class SLR {
         System.out.println("B0 = " + b0);
         System.out.println("Promedio de sumas = " + calcPromedioSuma(month));
 
-        System.out.println("\nY 0-9: ");
-        for(int i = 0; i < 9; i++){
-            System.out.println("X= " + month[i] + ", Y = " + calcY(b0,b1,month[i])); 
+        System.out.println("\nY 0-"+String.valueOf(month.length-1));
+        for(int i = 0; i < month.length; i++){
+            System.out.println("X= " + (int)month[i] + ", Y = " + calcY(b0,b1,month[i])); 
         }
 
         /***************************************Predicciones************************************************/
         System.out.println("\nPredicciones: ");
-        double[] predX = new double[10];
-        predX[0] = month[8] + promSum;
-        for(int i = 1; i < 10; i++){
+        double[] predX = new double[5];
+        predX[0] = month[month.length-1] + promSum;
+        for(int i = 1; i < noPredictions; i++){
             predX[i] = predX[i-1] + promSum;
         }
-        for(int i = 0; i < 10; i++){
-            System.out.println("X= " + predX[i] + ", Y = " + calcY(b0,b1,predX[i])); 
+        for(int i = 0; i < noPredictions; i++){
+            System.out.println("X= " + (int)predX[i] + ", Y = " + calcY(b0,b1,predX[i])); 
         }
     }
 
@@ -44,7 +45,7 @@ public class SLR {
     }
 
     public static double calcY(double a,double b, double x){
-        return a + b*x;
+        return Math.round(a + b*x);
     }
 
     public static double calcPromedioSuma(double[] valores){

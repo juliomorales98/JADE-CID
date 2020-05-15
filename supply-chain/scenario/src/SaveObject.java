@@ -8,6 +8,7 @@ import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -20,7 +21,20 @@ public class SaveObject {
         return javaObject;
     }
 
-
+    public boolean DeleteAllFromTable(Connection con){
+        PreparedStatement ps=null;
+        String sql=null;
+        sql="TRUNCATE TABLE History";
+        try{
+            ps=con.prepareStatement(sql);
+            ps.executeUpdate();
+            return true;
+        }catch (SQLException e){
+            System.out.println(e);
+            return false;
+        }
+        
+    }
     public void setJavaObject(Object javaObject) {
         this.javaObject = javaObject;
     }
@@ -89,7 +103,7 @@ public class SaveObject {
 
                 History historyAux =(History)ins.readObject();
 
-                System.out.println("Object in value ::"+historyAux.GetDate());
+                //System.out.println("Object in value ::"+historyAux.GetDate());
                 result.add(historyAux);
                 ins.close();
 
