@@ -10,12 +10,11 @@ import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPAException;
 
-public class SLRAgent extends Agent{
-    private SLR slr;
-    private MySqlCon con;    
-
+public class MLRAgent extends Agent{
+    private MLR mlr;
+    private MySqlCon con;
     protected void setup(){        
-        slr = new SLR(5);
+        mlr = new MLR(5);
         con = new MySqlCon();
         con.GenerateConnection();
         //addBehaviour(new MyOneShotRegression());
@@ -27,7 +26,7 @@ public class SLRAgent extends Agent{
         // Descripcion de un servicio que proporciona el Agente
         ServiceDescription servicio = new ServiceDescription();
         servicio.setType("Data Analytics");
-        servicio.setName("Linear Regression");
+        servicio.setName("Multiple Regression");
  
         // AÃ±ade dicho servicio a la lista de servicios de la descripciÃ³n del agente
         descripcion.addServices(servicio);       
@@ -67,17 +66,17 @@ public class SLRAgent extends Agent{
                 }
                 try{
                     List<History> aux = so.getObject(con.GetConnection());
-                    double[] x = new double[aux.size()];
-                    double[] y = new double[aux.size()];
+                    double[][] x = new double[aux.size()][3];
                     int counter = 0;
                     System.out.println("Mes\tTipo\tPiezas\tTotal");
                     for(History h : aux){
                         System.out.println(h.ToString());
-                        x[counter] = h.GetDate().getMonth()+1;
-                        y[counter] = h.getNoPieces();
+                        x[counter][0] = h.GetDate().getMonth()+1;
+                        x[counter][1] = h.GetPrice();
+                        x[counter][2] = h.getNoPieces();
                         counter++;
                     }
-                    slr.DoRegression(x, y);
+                    mlr.DoRegression(x);
                 }catch(Exception e){
                     System.out.println(e);
                 }
@@ -85,18 +84,6 @@ public class SLRAgent extends Agent{
 
             
             
-        }
-    }
-
-    private class MyOneShotRegression extends OneShotBehaviour{
-        public void action(){
-            System.out.println("Start regression");
-        }
-
-        public int onEnd(){
-            System.out.println("Bye bye");
-            myAgent.doDelete();
-            return super.onEnd();
         }
     }
 }
