@@ -2,6 +2,8 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
+import java.util.Arrays;
 
 import jade.core.*;
 import jade.core.behaviours.Behaviour;
@@ -22,6 +24,8 @@ public class Manufacturer extends Agent {
   private String manufacturerOrder;
   // The list of known supplier agents
   private AID[] supplierAgents;
+  // List of known slr agents
+  private AID[] slrAgents;
   // items currently in warehouse stock
   private ComponentList catalogue;
   private int day, stock;
@@ -48,7 +52,9 @@ public class Manufacturer extends Agent {
     } else {
       System.err.println("No file name presented");
       // agent is deleted
-      doDelete();
+      // doDelete();
+      String csvFilePath = "../manufacturer.csv";
+      catalogue = new ComponentList(csvFilePath);
     }
 
     // TickerBehaviour to display total profit and day
@@ -76,7 +82,7 @@ public class Manufacturer extends Agent {
     });
 
     // Add a TickerBehaviour that schedules a request to supplier
-    addBehaviour(new TickerBehaviour(this, 2500) {
+    addBehaviour(new TickerBehaviour(this, 5000) {
       protected void onTick() {
         if (orderStock == true) {
           manufacturerOrder = stockToOrder;
@@ -87,7 +93,6 @@ public class Manufacturer extends Agent {
           ServiceDescription sd = new ServiceDescription();
           sd.setType("supplier");
           temp.addServices(sd);
-
           try {
             DFAgentDescription[] res = DFService.search(myAgent, temp);
             System.out.println(getAID().getName() + ") Found the following " + res.length + " supplier agents:");
@@ -101,16 +106,39 @@ public class Manufacturer extends Agent {
             fe.printStackTrace();
           }
 
-          // Perform the request
-          myAgent.addBehaviour(new RequestManufacturerOrder());
-          orderStock = false;
         }
       }
     });
+    // ticker for slr agents search
+    addBehaviour(new TickerBehaviour(this, 5000) {
+      protected void onTick() {
+        // get slr agent lists
+        DFAgentDescription temp = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+        sd.setType("Data Analytics");
+        temp.addServices(sd);
+        try {
+          DFAgentDescription[] res = DFService.search(myAgent, temp);
+          System.out.println(getAID().getName() + ") Found the following " + res.length + " supplier agents:");
+          slrAgents = new AID[res.length];
 
+          for (int i = 0; i < res.length; ++i) {
+            slrAgents[i] = res[i].getName();
+            System.out.println(slrAgents[i].getName());
+          }
+
+        } catch (FIPAException fe) {
+          fe.printStackTrace();
+          System.out.println(fe);
+        }
+        // Perform the request
+        myAgent.addBehaviour(new RequestSimplePrediction());
+      }
+    });
     // Register this Supplier service in the Yellow Pages
     DFAgentDescription dfd = new DFAgentDescription();
     dfd.setName(getAID());
+    dfd.addLanguages("Castellano");
     ServiceDescription sd = new ServiceDescription();
     sd.setType("manufacturer");
     sd.setName("JADE-manufacturer");
@@ -127,6 +155,9 @@ public class Manufacturer extends Agent {
 
     // behaviour dealing with customer orders
     addBehaviour(new OrderPurchasedCustomer());
+
+    // behaviour dealing with simple prediction order
+    addBehaviour(new RequestSimplePrediction());
   }
 
   protected void takeDown() {
@@ -221,6 +252,7 @@ public class Manufacturer extends Agent {
 
   // Behaviour that gets manufacturer to ask suppliers to fulfil an order
   private class RequestManufacturerOrder extends Behaviour {
+
     private AID supplier; // supplier agent who will fulfil order
     private double supplierBestPrice; // the suppliers price for the order
     private int numberReplies = 0; // Number of replies from Supplier agents
@@ -228,6 +260,8 @@ public class Manufacturer extends Agent {
     private int step = 0;
 
     public void action() {
+      if (supplierAgents == null)
+        return;
       switch (step) {
         case 0:
           // Sends cfp to suppliers
@@ -310,6 +344,145 @@ public class Manufacturer extends Agent {
         System.out.println("Attempt failed: '" + manufacturerOrder + "' could not be fulfilled");
       }
       return ((step == 2 && supplier == null) || step == 4);
+    }
+  }
+
+  // Behaviour that gets manufacturer to ask slragent to fulfil a prediction
+  private class RequestSimplePrediction extends Behaviour {
+    private AID slrAgent; // slr agent who will fulfil prediction
+    private double noPredictions; // the slr agent number of predictions to do
+    private int numberReplies = 0; // Number of replies from slr agents
+    private MessageTemplate mt;
+    private int stepSLR = 0;
+
+    public void action() {
+      switch (stepSLR) {
+        case 0:
+          // Sends cfp to slr agents
+          if (slrAgents == null) {
+            return;
+          }
+          ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
+          for (int i = 0; i < slrAgents.length; ++i) {
+            cfp.addReceiver(slrAgents[i]);
+          }
+          cfp.setContent(manufacturerOrder);
+          cfp.setConversationId("slr-order");
+          cfp.setReplyWith("cfp" + System.currentTimeMillis());
+          myAgent.send(cfp);
+          mt = MessageTemplate.and(MessageTemplate.MatchConversationId("slr-order"),
+              MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
+          stepSLR = 1;
+          System.out.println("Hizo paso 0");
+          break;
+
+        case 1:
+          // Receive proposals/refusals
+          ACLMessage reply = myAgent.receive(mt);
+          if (reply != null) {
+            // replys
+            if (reply.getPerformative() == ACLMessage.PROPOSE) {
+              // offer from slr agent
+              int price = Integer.valueOf(reply.getContent());
+              if (slrAgent == null || price >= noPredictions) {
+                noPredictions = price;
+                slrAgent = reply.getSender();
+              }
+            }
+            numberReplies++;
+            if (numberReplies >= slrAgents.length) {
+              // replies received
+              stepSLR = 2;
+              System.out.println("Hizo paso 1");
+            }
+          } else {
+            System.out.println("No hubo respuesta");
+            block();
+          }
+          break;
+
+        case 2:
+          // accept purchase offer
+          ACLMessage order = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+          order.addReceiver(slrAgent);
+          // Create content for the prediction
+          MySqlCon con = new MySqlCon();
+          con.GenerateConnection();
+          SaveObject so = new SaveObject();
+          int[][] x = null;
+          // Eliminamos lo que estaba en la tabla anteriormente
+          if (so.DeleteAllFromTable(con.GetConnection())) {
+            // Insertamos 12 meses
+            for (int i = 0; i < 12; i++) {
+              int _pieces = (i + 1) * 10;
+              Random myRandom = new Random();
+
+              History myHistory = new History(i, (int) myRandom.nextInt(3), null,
+                  3000 * _pieces + myRandom.nextInt(999), _pieces + (int) myRandom.nextInt(9));
+
+              so.setJavaObject((Object) myHistory);
+              try {
+                so.saveObject(con.GetConnection());
+              } catch (Exception e) {
+                System.out.println(e);
+              }
+
+            }
+            try {
+              List<History> aux = so.getObject(con.GetConnection());
+              x = new int[aux.size()][2];
+              int counter = 0;
+              //System.out.println("Mes\tTipo\tPiezas\tTotal");
+              for (History h : aux) {
+                //System.out.println(h.ToString());
+                x[counter][0] = h.GetDate().getMonth() + 1;
+                x[counter][1] = h.getNoPieces();
+                counter++;
+              }
+            } catch (Exception e) {
+              System.out.println(e);
+            }
+          }
+          String auxContent = "";
+          for(int[] d : x){
+            auxContent += Arrays.toString(d);
+          }
+          order.setContent(auxContent);
+          order.setConversationId("slr-order");
+          order.setReplyWith("order" + System.currentTimeMillis());
+          myAgent.send(order);
+          mt = MessageTemplate.and(MessageTemplate.MatchConversationId("slr-order"),
+              MessageTemplate.MatchInReplyTo(order.getReplyWith()));
+          stepSLR = 3;
+          System.out.println("Hizo paso 2");
+          break;
+
+        case 3:
+          // reply of purchase order
+          reply = myAgent.receive(mt);
+          if (reply != null) {
+            if (reply.getPerformative() == ACLMessage.INFORM) {
+              // successful order
+              System.out.println("Prediction received");
+              System.out.println(reply.getContent());
+            } else {
+              System.out.println("\n" + getAID().getName() + ") Attempt failed: Could not fulfil prediction '");
+            }
+
+            stepSLR = 4;
+            System.out.println("Hizo paso 3");
+          } else {
+            block();
+          }
+          break;
+      }
+    }
+
+    public boolean done() {
+      if (stepSLR == 2 && slrAgent == null) {
+        System.out.println("Attempt failed: '" + manufacturerOrder + "' could not be fulfilled");
+      }
+      return ((stepSLR == 2 && slrAgent == null) || stepSLR == 4);
     }
   }
 }

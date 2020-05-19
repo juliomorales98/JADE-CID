@@ -6,33 +6,42 @@ public class SLR {
         noPredictions = _noP;
         System.out.println("SLR calculator ready");
     }
-    public void DoRegression(double[] _x, double[] _y){ 
-        this.month = _x;
-        this.sales = _y; 
+    public String DoRegression(double[][] _data){ 
+        this.month = new double[_data.length];
+        this.sales = new double[_data.length];
+        int counter = 0;
+        for(double[] d : _data){
+            month[counter] = d[0];
+            sales[counter] = d[1];            
+            counter++;
+        }
                      
         double b1 = calcB1(month,sales,calcPow(month));
         double b0 = calcB0(month,sales,b1);
         double promSum = calcPromedioSuma(month);
 
-        System.out.println("\nB1 = " + b1);
-        System.out.println("B0 = " + b0);
-        System.out.println("Promedio de sumas = " + calcPromedioSuma(month));
+        //System.out.println("\nB1 = " + b1);
+        //System.out.println("B0 = " + b0);
+        //System.out.println("Promedio de sumas = " + calcPromedioSuma(month));
 
-        System.out.println("\nY 0-"+String.valueOf(month.length-1));
+        /*System.out.println("\nY 0-"+String.valueOf(month.length-1));
         for(int i = 0; i < month.length; i++){
             System.out.println("X= " + (int)month[i] + ", Y = " + calcY(b0,b1,month[i])); 
-        }
+        }*/
 
         /***************************************Predicciones************************************************/
-        System.out.println("\nPredicciones: ");
+        //System.out.println("\nPredicciones: ");
         double[] predX = new double[5];
         predX[0] = month[month.length-1] + promSum;
+        String result = "";
         for(int i = 1; i < noPredictions; i++){
             predX[i] = predX[i-1] + promSum;
         }
         for(int i = 0; i < noPredictions; i++){
-            System.out.println("X= " + (int)predX[i] + ", Y = " + calcY(b0,b1,predX[i])); 
+            result += "\nX= " + (int)predX[i] + ", Y = " + calcY(b0,b1,predX[i]); 
         }
+
+        return result;
     }
 
     private static double[] calcPow(double[] x){

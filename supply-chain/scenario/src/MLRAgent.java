@@ -19,6 +19,7 @@ public class MLRAgent extends Agent{
         con.GenerateConnection();
         //addBehaviour(new MyOneShotRegression());
         // DescripciÃ³n del agente
+        System.out.println("Creo mlr");
         DFAgentDescription descripcion = new DFAgentDescription();
         descripcion.setName(getAID());
         descripcion.addLanguages("Castellano");
