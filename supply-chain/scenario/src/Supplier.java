@@ -24,14 +24,18 @@ public class Supplier extends Agent {
       String csvFilePath = (String) args[0];
       catalogue = new ComponentList(csvFilePath);
     } else {
-      System.err.println("No csv file passed as argument");
-      doDelete();
+      System.err.println("No file name presented, taking static file");
+      // agent is deleted
+      // doDelete();
+      String csvFilePath = "supplier1.csv";
+      catalogue = new ComponentList(csvFilePath);
 
     }
 
     // Register in yellow pagess supplier
     DFAgentDescription dfd = new DFAgentDescription();
     dfd.setName(getAID());
+    dfd.addLanguages("Castellano");
     ServiceDescription sd = new ServiceDescription();
     sd.setType("supplier");
     sd.setName("JADE-supplier");

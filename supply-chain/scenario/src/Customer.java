@@ -29,6 +29,7 @@ public class Customer extends Agent {
   // Checks if customer has to order a new order
   boolean newOrder = true;
   int day;
+  int month;
 
   protected void setup() {
     System.out.println("\nCustomer agent " + getAID().getName() + " is starting.");
@@ -38,15 +39,20 @@ public class Customer extends Agent {
     if (args == null) {
       float min = 0;
       float max = 1;
-
+      month = -1;
       // TickerBehaviour which requests to manufacturer whether order can be fulfilled
       addBehaviour(new TickerBehaviour(this, 5000) {
+        int prevPieces = 0;
         protected void onTick() {
           if (newOrder == true) {
             Random rn = new Random();
-
-            // Setup quantity randomly between 1-50
-            int qty = rn.nextInt(50);
+            month ++;
+            if(month > 11){
+              return;
+            }
+            // Setup quantity randomly between 1-50            
+            int qty = prevPieces + rn.nextInt(50);
+            prevPieces = qty;
             float randomOrder = rn.nextFloat() * (max - min) + min;
 
             customerOrder = (String) orderCustomer(randomOrder, qty);
@@ -104,15 +110,15 @@ public class Customer extends Agent {
 
     String cpu, motherboard, memory, hardrive;
     if (rand < 0.5) {
-      cpu = "Mintel CPU" + "," + qty + ",0.0;";
-      motherboard = "Mintel Motherboard" + "," + qty + ",0.0;";
-      memory = "RAM 4Gb" + "," + qty + ",0.0;";
-      hardrive = "HDD 1TB" + "," + qty + ",0.0;";
+      cpu = "Mintel CPU" + "+" + qty;
+      motherboard = "Mintel Motherboard" + "+" + qty;
+      memory = "RAM 4Gb" + "+" + qty;
+      hardrive = "HDD 1TB" + "+" + qty;
     } else {
-      cpu = "IMD CPU" + "," + qty + ",0.0;";
-      motherboard = "IMD CPU" + "," + qty + ",0.0;";
-      memory = "RAM 16Gb" + "," + qty + ",0.0;";
-      hardrive = "HDD 2TB" + "," + qty + ",0.0;";
+      cpu = "IMD CPU" + "+" + qty;
+      motherboard = "IMD CPU" + "+" + qty;
+      memory = "RAM 16Gb" + "+" + qty;
+      hardrive = "HDD 2TB" + "+" + qty;
     }
     String[] order = { cpu + motherboard + memory + hardrive };
     StringBuilder s = new StringBuilder();
@@ -175,8 +181,18 @@ public class Customer extends Agent {
         case 2:
           // sends accept proposal to manufacturer
           ACLMessage order = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+          Random myRandom = new Random();
+          int _pieces = (month + 1) * 10;
+          History myHistory = new History(
+            month,
+            (int) myRandom.nextInt(3),
+            customerOrder,
+            3000 * _pieces + myRandom.nextInt(999),
+            _pieces + (int) myRandom.nextInt(9)
+          );
+          System.out.println("Data sent: " + myHistory.ToString());
           order.addReceiver(manufacturer);
-          order.setContent(customerOrder);
+          order.setContent(myHistory.ToString());
           order.setConversationId("customer-order");
           order.setReplyWith("order" + System.currentTimeMillis());
           myAgent.send(order);

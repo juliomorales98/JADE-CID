@@ -1,3 +1,4 @@
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -36,13 +37,20 @@ public class Manufacturer extends Agent {
 
   // Parameters
   int w = 15;
-
+  // number of sales in database
+  int noSales;
+  // sql
+  MySqlCon con;
+  SaveObject so;
   @Override
   protected void setup() {
 
     // Printout a welcome message
     System.out.println("Hello! Manufacturer " + getAID().getName() + " is ready");
-
+    // Initizize sql connections
+    con = new MySqlCon();    
+    con.GenerateConnection();
+    so = new SaveObject();
     // Create the catalogue
     // CSV file passed as argument for what items manufacturer has to stock
     Object[] args = getArguments();
@@ -50,13 +58,20 @@ public class Manufacturer extends Agent {
       String csvFilePath = (String) args[0];
       catalogue = new ComponentList(csvFilePath);
     } else {
-      System.err.println("No file name presented");
+      System.err.println("No file name presented, taking static file");
       // agent is deleted
       // doDelete();
-      String csvFilePath = "../manufacturer.csv";
+      String csvFilePath = "manufacturer.csv";
       catalogue = new ComponentList(csvFilePath);
     }
-
+    //Get history count 
+    try{
+      noSales = so.GetCount(con.GetConnection());
+      System.out.println("Has " + noSales + " sales");
+    }catch(Exception e){
+      System.out.println(e);
+    }
+    
     // TickerBehaviour to display total profit and day
     addBehaviour(new TickerBehaviour(this, 5000) {
       protected void onTick() {
@@ -201,11 +216,11 @@ public class Manufacturer extends Agent {
           balance += price;
         } else {
           // order is not in catalogue so cannot be fulfilled
-          reply.setPerformative(ACLMessage.REFUSE);
-          reply.setContent("not-available");
+          reply.setPerformative(ACLMessage.PROPOSE);
+          reply.setContent("AVAILABLE");
           // order stock from supplier
-          orderStock = true;
-          stockToOrder = title;
+          //orderStock = true;
+          //stockToOrder = title;
         }
         myAgent.send(reply);
       } else {
@@ -226,23 +241,38 @@ public class Manufacturer extends Agent {
         // ACCEPT_PROPOSAL received from customer
         String title = msg.getContent();
         ACLMessage reply = msg.createReply();
-
-        ComponentList order = new ComponentList(title, false);
-
-        double price = -1.0;
-        if (catalogue.contains(order)) {
-
-          // the order is available, remove items from stock
-          catalogue.subtract(order);
-
-          reply.setPerformative(ACLMessage.INFORM); // inform customer
-          System.out.println(
-              "Order: '" + title + "' sold to agent " + msg.getSender().getName() + " total profit " + balance);
-        } else {
-          // items requested not available
-          reply.setPerformative(ACLMessage.FAILURE);
-          reply.setContent("not-available");
+        System.out.println("Data received " + title);
+        List<String> order = Arrays.asList(title.split(","));
+        int _type;
+        switch(order.get(1)){
+          case "Server":_type = 1;
+              break;
+          case "Desktop":_type = 2;
+              break;
+          case "Laptop":_type = 3;
+              break;
+          default:_type =3;
+          
+      }
+        History myHistory = new History(
+          Integer.valueOf(order.get(0)),
+          _type,
+          order.get(2),
+          Double.parseDouble(order.get(3)),
+          Integer.valueOf(order.get(4))
+        );
+        so.setJavaObject(myHistory);
+        try{
+          so.saveObject(con.GetConnection());
+        }catch(Exception e){
+          System.out.println(e);
         }
+        
+        reply.setPerformative(ACLMessage.INFORM); // inform customer
+        System.out.println(
+            "Order: '" + title + "' sold to agent " + msg.getSender().getName() + " total profit " + balance);
+        noSales ++;
+        System.out.println("Sales after sell: " + noSales);
         myAgent.send(reply);
       } else {
         block();
@@ -359,7 +389,7 @@ public class Manufacturer extends Agent {
       switch (stepSLR) {
         case 0:
           // Sends cfp to slr agents
-          if (slrAgents == null) {
+          if (slrAgents == null || noSales < 12) {
             return;
           }
           ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
@@ -405,29 +435,10 @@ public class Manufacturer extends Agent {
           // accept purchase offer
           ACLMessage order = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
           order.addReceiver(slrAgent);
-          // Create content for the prediction
-          MySqlCon con = new MySqlCon();
-          con.GenerateConnection();
-          SaveObject so = new SaveObject();
+          // Get and send data from sql to slr agent      
           int[][] x = null;
-          // Eliminamos lo que estaba en la tabla anteriormente
-          if (so.DeleteAllFromTable(con.GetConnection())) {
-            // Insertamos 12 meses
-            for (int i = 0; i < 12; i++) {
-              int _pieces = (i + 1) * 10;
-              Random myRandom = new Random();
-
-              History myHistory = new History(i, (int) myRandom.nextInt(3), null,
-                  3000 * _pieces + myRandom.nextInt(999), _pieces + (int) myRandom.nextInt(9));
-
-              so.setJavaObject((Object) myHistory);
-              try {
-                so.saveObject(con.GetConnection());
-              } catch (Exception e) {
-                System.out.println(e);
-              }
-
-            }
+          if (con.GetConnection() != null) {
+            // First we get all history from sql table
             try {
               List<History> aux = so.getObject(con.GetConnection());
               x = new int[aux.size()][2];
@@ -443,6 +454,7 @@ public class Manufacturer extends Agent {
               System.out.println(e);
             }
           }
+          // Transform array of arrays into String
           String auxContent = "";
           for(int[] d : x){
             auxContent += Arrays.toString(d);

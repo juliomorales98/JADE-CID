@@ -6,11 +6,11 @@ import java.util.Calendar;
 public class History implements Serializable{
     private Date date;
     private String type;//type of configuration
-    private List<String> configuration;
+    private String configuration;
     private double price;
     private int noPieces;
     
-    public History(int _month, int _type, List<String> _configuration, double _price, int _pieces){
+    public History(int _month, int _type, String _configuration, double _price, int _pieces){
         this.date = new Date();        
         this.date.setMonth(_month);
         switch(_type){
@@ -36,7 +36,7 @@ public class History implements Serializable{
         return this.type;
     }
 
-    public List<String> GetConfiguration(){
+    public String GetConfiguration(){
         return this.configuration;
     }
 
@@ -49,6 +49,10 @@ public class History implements Serializable{
     }
 
     public String ToString(){
-        return String.valueOf(this.date.getMonth()+1) + "\t" + this.type + "\t" + String.valueOf(this.noPieces) + "\t" + String.valueOf(this.price);
+        return String.valueOf(this.date.getMonth()) + "," +
+        this.type + "," +
+        this.configuration + "," +
+        String.valueOf(this.price) + "," +
+        String.valueOf(this.noPieces);
     }
 }

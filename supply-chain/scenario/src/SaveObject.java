@@ -71,7 +71,19 @@ public class SaveObject {
 
     }
 
-
+    public int GetCount(Connection con) throws Exception{
+        int result = 0;
+        PreparedStatement ps = null;
+        String sql = null;
+        ResultSet rs = null;
+        sql = "SELECT COUNT(*) as counter FROM History";
+        ps = con.prepareStatement(sql);
+        rs = ps.executeQuery();
+        if(rs.next()){
+            result = rs.getInt("counter");
+        }
+        return result;
+    }
     public List<History> getObject(Connection con) throws Exception
     {
         List<History> result=null;
