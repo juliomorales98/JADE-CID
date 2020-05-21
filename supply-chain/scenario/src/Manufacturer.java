@@ -420,9 +420,16 @@ public class Manufacturer extends Agent {
       switch (stepSLR) {
         case 0:
           // Sends cfp to slr agents
-          if (slrAgents == null || noSales < 12) {
+          try{
+            if (slrAgents == null || (noSales = so.GetCount(con.GetConnection())) < 12) {
+              return;
+            }          
+          }
+          catch(Exception e){
+            System.out.println(e);
             return;
           }
+
           ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
           for (int i = 0; i < slrAgents.length; ++i) {
             cfp.addReceiver(slrAgents[i]);
@@ -538,7 +545,13 @@ public class Manufacturer extends Agent {
       switch (step) {
         case 0:
           // Sends cfp to slr agents
-          if (mlrAgents == null || noSales < 12) {
+          try{
+            if (mlrAgents == null || (noSales = so.GetCount(con.GetConnection())) < 12) {
+              return;
+            }          
+          }
+          catch(Exception e){
+            System.out.println(e);
             return;
           }
           ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
