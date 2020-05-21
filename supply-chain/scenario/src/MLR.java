@@ -144,39 +144,24 @@ public class MLR{
         return b0 + b1*_x1 + b2*_x2;
     }
 
-    private static boolean CalculateY(int times){
+    private static String CalculateY(int times){
         double newX1 = dataSet[dataSet.length-1][0] + changeAverageX1;
         double newX2 = dataSet[dataSet.length-1][1] + changeAverageX2;
-        
-        System.out.println("x1\tx2\ty");
+        String result = "";
         for(int i = 0; i < times; i++){
-            System.out.println(Math.round(newX1) + "\t" + Math.round(newX2) + "\t" + Math.round(CalculateY(newX1, newX2)));
+            result += String.valueOf(Math.round(newX1)) + "\t" + String.valueOf(Math.round(newX2)) + "\t" + String.valueOf(Math.round(CalculateY(newX1, newX2)) + "\n");
             newX1 += changeAverageX1;
             newX2 += changeAverageX2;
         }
         
 
-        if(times > 0)
-            return true;
-        else
-            return false;
+        return result;
     }
 
-    public static void DoRegression(double[][] _data){        
+    public static String DoRegression(double[][] _data){        
         dataSet = _data;
-        System.out.println("Data Set:");
-        PrintData(dataSet);
-
         InitializeVariables();
-        System.out.println("\nb0 = " + b0);
-        System.out.println("b1 = " + b1);
-        System.out.println("b2 = " + b2 + "\n");
-        
-        System.out.println("Predicciones:");
-        CalculateY(noPredictions);
-        
-
-        //reader.close();
+        return CalculateY(noPredictions);
         
     }
 }

@@ -34,7 +34,7 @@ public class SLRAgent extends Agent {
 
         // Descripcion de un servicio que proporciona el Agente
         ServiceDescription servicio = new ServiceDescription();
-        servicio.setType("Data Analytics");
+        servicio.setType("SLR-Prediction");
         servicio.setName("Linear Regression");
 
         // AÃ±ade dicho servicio a la lista de servicios de la descripciÃ³n del agente
